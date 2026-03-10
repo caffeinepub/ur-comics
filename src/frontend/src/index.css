@@ -1,0 +1,330 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Purple Nebula Design System */
+    --background: 0.97 0.008 280;
+    --foreground: 0.12 0.02 270;
+    --card: 1 0 0;
+    --card-foreground: 0.12 0.02 270;
+    --popover: 1 0 0;
+    --popover-foreground: 0.12 0.02 270;
+    --primary: 0.52 0.22 285;
+    --primary-foreground: 1 0 0;
+    --secondary: 0.94 0.03 280;
+    --secondary-foreground: 0.3 0.1 280;
+    --muted: 0.94 0.02 280;
+    --muted-foreground: 0.55 0.05 280;
+    --accent: 0.62 0.18 295;
+    --accent-foreground: 1 0 0;
+    --destructive: 0.55 0.22 25;
+    --destructive-foreground: 1 0 0;
+    --border: 0.9 0.02 280;
+    --input: 0.9 0.02 280;
+    --ring: 0.52 0.22 285;
+    --radius: 24px;
+    --chart-1: 0.52 0.22 285;
+    --chart-2: 0.62 0.18 295;
+    --chart-3: 0.7 0.15 300;
+    --chart-4: 0.48 0.18 260;
+    --chart-5: 0.65 0.2 310;
+    --sidebar: 1 0 0;
+    --sidebar-foreground: 0.12 0.02 270;
+    --sidebar-primary: 0.52 0.22 285;
+    --sidebar-primary-foreground: 1 0 0;
+    --sidebar-accent: 0.94 0.03 280;
+    --sidebar-accent-foreground: 0.3 0.1 280;
+    --sidebar-border: 0.9 0.02 280;
+    --sidebar-ring: 0.52 0.22 285;
+
+    /* Custom UR Comics tokens */
+    --nebula-primary: #6a5ae0;
+    --nebula-secondary: #8b7cff;
+    --nebula-bg: #f4f7ff;
+    --nebula-surface: #ffffff;
+    --nebula-text: #1a1a1a;
+    --nebula-text-muted: #6b7280;
+    --nebula-gradient: linear-gradient(135deg, #6a5ae0, #8b7cff);
+    --nebula-gradient-hover: linear-gradient(135deg, #5a4ad0, #7a6cef);
+    --nebula-glass-bg: rgba(255, 255, 255, 0.15);
+    --nebula-glass-border: rgba(255, 255, 255, 0.25);
+    --nebula-shadow-sm: 0 2px 8px rgba(106, 90, 224, 0.08);
+    --nebula-shadow-md: 0 4px 20px rgba(106, 90, 224, 0.15), 0 1px 4px
+      rgba(0, 0, 0, 0.06);
+    --nebula-shadow-lg: 0 8px 40px rgba(106, 90, 224, 0.2), 0 2px 8px
+      rgba(0, 0, 0, 0.1);
+    --nebula-shadow-glow: 0 0 20px rgba(106, 90, 224, 0.4), 0 4px 20px
+      rgba(139, 124, 255, 0.3);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--nebula-bg);
+    color: var(--nebula-text);
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* === COMIC CARD SCROLL REVEAL === */
+.comic-card-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.comic-card-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* === SKELETON PULSE === */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #e8eaf6 25%, #d1d5f0 50%, #e8eaf6 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #e8eaf6 25%, #d5d8f5 50%, #e8eaf6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+/* === STAR RATING === */
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0 2px;
+  transition: transform 0.15s ease;
+  color: #d1d5db;
+}
+
+.star-btn:hover,
+.star-btn.active {
+  color: #f59e0b;
+  transform: scale(1.2);
+}
+
+/* === PROGRESS BAR === */
+.reading-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--nebula-gradient);
+  transition: width 0.1s linear;
+  z-index: 1000;
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 8px rgba(106, 90, 224, 0.6);
+}
+
+/* === HERO SLIDER === */
+.hero-slide {
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.hero-slide.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hero-slide.inactive {
+  opacity: 0;
+  transform: scale(1.02);
+}
+
+/* === DRAWER === */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 998;
+  transition: opacity 0.3s ease;
+}
+
+.drawer-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.side-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: min(320px, 85vw);
+  background: var(--nebula-surface);
+  z-index: 999;
+  transform: translateX(-100%);
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 4px 0 40px rgba(106, 90, 224, 0.2);
+  overflow-y: auto;
+}
+
+.side-drawer.open {
+  transform: translateX(0);
+}
+
+/* === GLASSMORPHISM === */
+.glass-header {
+  background: rgba(244, 247, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 0.5px solid rgba(106, 90, 224, 0.15);
+}
+
+/* === BUTTON HOVER === */
+.btn-nebula {
+  background: var(--nebula-gradient);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-nebula:hover {
+  transform: scale(1.02);
+  box-shadow: var(--nebula-shadow-glow);
+}
+
+.btn-nebula:active {
+  transform: scale(0.98);
+}
+
+/* === GENRE PILL TABS === */
+.genre-pill {
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(106, 90, 224, 0.25);
+  background: transparent;
+  color: var(--nebula-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.genre-pill:hover {
+  background: rgba(106, 90, 224, 0.08);
+  border-color: var(--nebula-primary);
+}
+
+.genre-pill.active {
+  background: var(--nebula-gradient);
+  border-color: transparent;
+  color: white;
+  box-shadow: var(--nebula-shadow-md);
+}
+
+/* === COMIC CARD === */
+.comic-card {
+  border-radius: 24px;
+  background: var(--nebula-surface);
+  box-shadow: var(--nebula-shadow-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border: 0.5px solid rgba(106, 90, 224, 0.1);
+}
+
+.comic-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--nebula-shadow-glow);
+}
+
+/* === DRAG DROP ZONE === */
+.dropzone-active {
+  border-color: var(--nebula-primary) !important;
+  background: rgba(106, 90, 224, 0.05) !important;
+}
+
+/* === END OF CHAPTER OVERLAY === */
+@keyframes eoc-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.eoc-card {
+  animation: eoc-slide-up 0.5s ease forwards;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(106, 90, 224, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(106, 90, 224, 0.5);
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .comic-card-reveal,
+  .hero-slide,
+  .side-drawer,
+  .btn-nebula,
+  .comic-card {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .comic-card-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
