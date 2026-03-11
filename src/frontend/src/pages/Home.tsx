@@ -213,45 +213,62 @@ const trendingComics: Comic[] = [
 const ALL_COMICS_PADDED: Comic[] = [...comics, ...comics.slice(0, 2)];
 const TOP10_COMICS = ALL_COMICS_PADDED.slice(0, 10);
 
-const GENRE_STYLES: Record<string, { background: string; boxShadow: string }> =
-  {
-    All: {
-      background: "linear-gradient(135deg, #6A5AE0, #9F8BFF)",
-      boxShadow: "0 2px 10px rgba(106,90,224,0.5)",
-    },
-    Action: {
-      background: "linear-gradient(135deg, #8B0000, #DC143C)",
-      boxShadow: "0 2px 10px rgba(220,20,60,0.4)",
-    },
-    Fantasy: {
-      background: "linear-gradient(135deg, #003080, #4B8BFF)",
-      boxShadow: "0 2px 10px rgba(75,139,255,0.4)",
-    },
-    Romance: {
-      background: "linear-gradient(135deg, #8B0057, #FF69B4)",
-      boxShadow: "0 2px 10px rgba(255,105,180,0.4)",
-    },
-    Horror: {
-      background: "linear-gradient(135deg, #1a0000, #8B0000)",
-      boxShadow: "0 2px 10px rgba(139,0,0,0.5)",
-    },
-    Comedy: {
-      background: "linear-gradient(135deg, #8B6000, #FFB800)",
-      boxShadow: "0 2px 10px rgba(255,184,0,0.4)",
-    },
-    "Sci-Fi": {
-      background: "linear-gradient(135deg, #005080, #00CED1)",
-      boxShadow: "0 2px 10px rgba(0,206,209,0.4)",
-    },
-    Mystery: {
-      background: "linear-gradient(135deg, #2E0854, #7B3FA0)",
-      boxShadow: "0 2px 10px rgba(123,63,160,0.5)",
-    },
-    Drama: {
-      background: "linear-gradient(135deg, #4A0080, #9F8BFF)",
-      boxShadow: "0 2px 10px rgba(159,139,255,0.4)",
-    },
-  };
+const GENRE_STYLES: Record<
+  string,
+  { background: string; boxShadow: string; activeBorder: string }
+> = {
+  All: {
+    background: "linear-gradient(135deg, #6A5AE0, #9F8BFF)",
+    boxShadow:
+      "0 0 16px rgba(106,90,224,0.45), 0 2px 12px rgba(106,90,224,0.3)",
+    activeBorder: "2px solid rgba(159,139,255,0.5)",
+  },
+  Action: {
+    background: "linear-gradient(135deg, #8B0000, #DC143C)",
+    boxShadow: "0 2px 10px rgba(220,20,60,0.4)",
+    activeBorder: "2px solid rgba(255,255,255,0.4)",
+  },
+  Fantasy: {
+    background: "linear-gradient(135deg, #003080, #4B8BFF)",
+    boxShadow: "0 2px 10px rgba(75,139,255,0.4)",
+    activeBorder: "2px solid rgba(255,255,255,0.4)",
+  },
+  Romance: {
+    background: "linear-gradient(135deg, #8B0057, #FF69B4)",
+    boxShadow: "0 2px 10px rgba(255,105,180,0.4)",
+    activeBorder: "2px solid rgba(255,255,255,0.4)",
+  },
+  Horror: {
+    background: "linear-gradient(135deg, #1a0000, #8B0000)",
+    boxShadow: "0 2px 10px rgba(139,0,0,0.5)",
+    activeBorder: "2px solid rgba(255,255,255,0.4)",
+  },
+  Comedy: {
+    background: "linear-gradient(135deg, #8B6000, #FFB800)",
+    boxShadow: "0 2px 10px rgba(255,184,0,0.4)",
+    activeBorder: "2px solid rgba(255,255,255,0.4)",
+  },
+  Adventure: {
+    background: "linear-gradient(135deg, #1B4332, #52B788)",
+    boxShadow: "0 2px 10px rgba(82,183,136,0.4)",
+    activeBorder: "2px solid rgba(255,255,255,0.4)",
+  },
+  "Sci-Fi": {
+    background: "linear-gradient(135deg, #005080, #00CED1)",
+    boxShadow: "0 2px 10px rgba(0,206,209,0.4)",
+    activeBorder: "2px solid rgba(255,255,255,0.4)",
+  },
+  Mystery: {
+    background: "linear-gradient(135deg, #2E0854, #7B3FA0)",
+    boxShadow: "0 2px 10px rgba(123,63,160,0.5)",
+    activeBorder: "2px solid rgba(255,255,255,0.4)",
+  },
+  Drama: {
+    background: "linear-gradient(135deg, #4A0080, #9F8BFF)",
+    boxShadow: "0 2px 10px rgba(159,139,255,0.4)",
+    activeBorder: "2px solid rgba(255,255,255,0.4)",
+  },
+};
 
 const GENRE_LIST = [
   "All",
@@ -260,6 +277,7 @@ const GENRE_LIST = [
   "Romance",
   "Horror",
   "Comedy",
+  "Adventure",
   "Sci-Fi",
   "Mystery",
   "Drama",
@@ -309,14 +327,17 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     <div style={{ paddingLeft: "16px", marginBottom: "16px" }}>
       <h2
         style={{
-          color: "white",
+          background: "linear-gradient(90deg, #6A5AE0, #9F8BFF)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          color: "transparent",
           fontSize: "20px",
           fontWeight: 800,
           fontFamily: "'Sora', system-ui, sans-serif",
           margin: "0 0 8px",
           letterSpacing: "-0.01em",
-          textShadow:
-            "0 0 20px rgba(159, 139, 255, 0.6), 0 0 40px rgba(106, 90, 224, 0.3)",
+          display: "inline-block",
         }}
       >
         {children}
@@ -346,7 +367,7 @@ function EmptyState({ dataOcid }: { dataOcid: string }) {
         fontFamily: "'Sora', system-ui, sans-serif",
       }}
     >
-      No comics found
+      No content found
     </p>
   );
 }
@@ -588,22 +609,28 @@ export default function Home({
     ? recommendedComics.filter((c) => c.title.toLowerCase().includes(q))
     : recommendedComics;
 
+  // Genre Explorer: filter both comics and novels
   const genreFilteredComics =
     activeGenre === "All"
       ? comics
       : comics.filter((c) => c.genre === activeGenre);
 
+  const genreFilteredNovels =
+    activeGenre === "All"
+      ? allNovels
+      : allNovels.filter((n) => n.genre === activeGenre);
+
   // Top 10 novels list (pad to 10)
   const top10Novels = [...allNovels, ...allNovels, ...allNovels].slice(0, 10);
 
   // Refs for scroll reveal
+  const refGenre = useScrollReveal();
   const refContinue = useScrollReveal();
   const refUpdates = useScrollReveal();
   const refTrending = useScrollReveal();
   const refPopularWeek = useScrollReveal();
   const refMostPopular = useScrollReveal();
   const refTop10 = useScrollReveal();
-  const refGenre = useScrollReveal();
   const refRecommended = useScrollReveal();
   const refCreator = useScrollReveal();
   const refNovels = useScrollReveal();
@@ -636,7 +663,97 @@ export default function Home({
       {/* ── Section 1: Featured Story ── */}
       <FeaturedCreator onReadNow={onReadFeatured} />
 
-      {/* ── Section 2: Continue Reading ── */}
+      {/* ── Section 2: Genre Explorer ── */}
+      <section
+        ref={refGenre}
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <SectionTitle>Genre Explorer</SectionTitle>
+        {/* Genre chips */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            overflowX: "auto",
+            padding: "0 16px 16px",
+            scrollbarWidth: "none",
+          }}
+        >
+          {GENRE_LIST.map((genre) => {
+            const style = GENRE_STYLES[genre] || GENRE_STYLES.All;
+            const isActive = activeGenre === genre;
+            return (
+              <button
+                key={genre}
+                type="button"
+                data-ocid="genre.tab"
+                onClick={() => setActiveGenre(genre)}
+                style={{
+                  flexShrink: 0,
+                  padding: "7px 16px",
+                  borderRadius: "999px",
+                  border: isActive
+                    ? style.activeBorder
+                    : "2px solid transparent",
+                  background: isActive
+                    ? style.background
+                    : "rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  boxShadow: isActive ? style.boxShadow : "none",
+                  transition: "all 0.2s",
+                  whiteSpace: "nowrap",
+                  opacity: isActive ? 1 : 0.7,
+                }}
+              >
+                {genre}
+              </button>
+            );
+          })}
+        </div>
+        {/* Filtered grid: comics + novels combined */}
+        {genreFilteredComics.length === 0 &&
+        genreFilteredNovels.length === 0 ? (
+          <EmptyState dataOcid="home.genre.empty_state" />
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "12px",
+              padding: "0 16px",
+            }}
+            className="sm:grid-cols-4"
+          >
+            {genreFilteredComics.map((comic, i) => (
+              <ComicCard
+                key={`genre-comic-${comic.id}`}
+                comic={comic}
+                index={i + 1}
+                onClick={() => onReadComic(comic)}
+                isBookmarked={bookmarkedIds.has(comic.id)}
+                onToggleBookmark={onToggleBookmark}
+              />
+            ))}
+            {genreFilteredNovels.map((novel, i) => (
+              <NovelCard
+                key={`genre-novel-${novel.id}`}
+                novel={novel}
+                index={genreFilteredComics.length + i + 1}
+                onClick={() => onReadNovel(novel)}
+                isBookmarked={bookmarkedIds.has(novel.id)}
+                onToggleBookmark={onToggleBookmark}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ── Section 3: Continue Reading ── */}
       <section
         ref={refContinue}
         data-ocid="home.continue_reading.section"
@@ -765,7 +882,7 @@ export default function Home({
         </div>
       </section>
 
-      {/* ── Section 3: Recently Updated Chapters ── */}
+      {/* ── Section 4: Recently Updated Chapters ── */}
       <section
         ref={refUpdates}
         className="scroll-section"
@@ -855,7 +972,7 @@ export default function Home({
         )}
       </section>
 
-      {/* ── Section 4: Trending Now ── */}
+      {/* ── Section 5: Trending Now ── */}
       <section
         ref={refTrending}
         className="scroll-section"
@@ -869,7 +986,7 @@ export default function Home({
         )}
       </section>
 
-      {/* ── Section 5: Popular This Week ── */}
+      {/* ── Section 6: Popular This Week ── */}
       <section
         ref={refPopularWeek}
         className="scroll-section"
@@ -879,7 +996,7 @@ export default function Home({
         {comicGrid(popularThisWeek, "ptw")}
       </section>
 
-      {/* ── Section 6: Most Popular ── */}
+      {/* ── Section 7: Most Popular ── */}
       <section
         ref={refMostPopular}
         className="scroll-section"
@@ -889,7 +1006,7 @@ export default function Home({
         {comicGrid(mostPopular, "mp")}
       </section>
 
-      {/* ── Section 7: Top 10 Ranking ── */}
+      {/* ── Section 8: Top 10 Ranking ── */}
       <section
         ref={refTop10}
         data-ocid="home.top10.section"
@@ -974,66 +1091,6 @@ export default function Home({
                 />
               ))}
         </div>
-      </section>
-
-      {/* ── Section 8: Genre Explorer ── */}
-      <section
-        ref={refGenre}
-        className="scroll-section"
-        style={{ marginTop: "40px" }}
-      >
-        <SectionTitle>Genre Explorer</SectionTitle>
-        {/* Genre chips */}
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            overflowX: "auto",
-            padding: "0 16px 16px",
-            scrollbarWidth: "none",
-          }}
-        >
-          {GENRE_LIST.map((genre) => {
-            const style = GENRE_STYLES[genre] || GENRE_STYLES.All;
-            const isActive = activeGenre === genre;
-            return (
-              <button
-                key={genre}
-                type="button"
-                data-ocid="genre.tab"
-                onClick={() => setActiveGenre(genre)}
-                style={{
-                  flexShrink: 0,
-                  padding: "7px 16px",
-                  borderRadius: "999px",
-                  border: isActive
-                    ? "2px solid rgba(255,255,255,0.4)"
-                    : "2px solid transparent",
-                  background: isActive
-                    ? style.background
-                    : "rgba(255,255,255,0.08)",
-                  color: "white",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  boxShadow: isActive ? style.boxShadow : "none",
-                  transition: "all 0.2s",
-                  whiteSpace: "nowrap",
-                  opacity: isActive ? 1 : 0.7,
-                }}
-              >
-                {genre}
-              </button>
-            );
-          })}
-        </div>
-        {/* Filtered comic grid */}
-        {genreFilteredComics.length === 0 ? (
-          <EmptyState dataOcid="home.genre.empty_state" />
-        ) : (
-          comicGrid(genreFilteredComics, "genre")
-        )}
       </section>
 
       {/* ── Section 9: Recommended For You ── */}
