@@ -17,7 +17,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Sora', 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
         border: "oklch(var(--border))",
@@ -72,22 +72,23 @@ export default {
         },
         nebula: {
           primary: '#6A5AE0',
-          secondary: '#8B7CFF',
-          bg: '#F4F7FF',
-          surface: '#FFFFFF',
+          light: '#9F8BFF',
+          dark: '#0D0B1A',
+          surface: '#1A1630',
+          muted: '#A89EC9',
         },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        card: "24px",
+        card: "12px",
+        xl2: "24px",
       },
       boxShadow: {
-        xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
-        nebula: "0 4px 20px rgba(106, 90, 224, 0.15), 0 1px 4px rgba(0,0,0,0.06)",
-        "nebula-lg": "0 8px 40px rgba(106, 90, 224, 0.2), 0 2px 8px rgba(0,0,0,0.1)",
-        "nebula-glow": "0 0 20px rgba(106, 90, 224, 0.4), 0 4px 20px rgba(139, 124, 255, 0.3)",
+        nebula: "0 4px 20px rgba(106, 90, 224, 0.2), 0 1px 4px rgba(0,0,0,0.2)",
+        "nebula-lg": "0 8px 40px rgba(106, 90, 224, 0.3), 0 2px 8px rgba(0,0,0,0.3)",
+        "nebula-glow": "0 0 24px rgba(106, 90, 224, 0.5), 0 4px 20px rgba(159, 139, 255, 0.3)",
       },
       keyframes: {
         "accordion-down": {
@@ -98,10 +99,15 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "fade-up": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-up": "fade-up 0.4s ease-out",
       },
     },
   },
