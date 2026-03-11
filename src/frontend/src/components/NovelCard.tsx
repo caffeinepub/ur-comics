@@ -1,24 +1,24 @@
-import type { Comic } from "../types";
+import type { Novel } from "../types";
 
-interface ComicCardProps {
-  comic: Comic;
+interface NovelCardProps {
+  novel: Novel;
   index: number;
   onClick: () => void;
   isBookmarked?: boolean;
   onToggleBookmark?: (id: number) => void;
 }
 
-export default function ComicCard({
-  comic,
+export default function NovelCard({
+  novel,
   index,
   onClick,
   isBookmarked,
   onToggleBookmark,
-}: ComicCardProps) {
+}: NovelCardProps) {
   return (
     <button
       type="button"
-      data-ocid={`comic.card.${index}`}
+      data-ocid={`novel.card.${index}`}
       className="comic-card"
       onClick={onClick}
       style={{
@@ -34,42 +34,72 @@ export default function ComicCard({
         position: "relative",
       }}
     >
-      {/* Cover */}
+      {/* Cover — portrait 3:4 like comic card */}
       <div
         style={{
-          background: comic.gradient,
+          background: novel.gradient,
           aspectRatio: "3 / 4",
           width: "100%",
           position: "relative",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-end",
+          padding: "0 0 12px",
         }}
       >
+        {/* Book spine decoration */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "6px",
+            height: "100%",
+            background: "rgba(0,0,0,0.3)",
+          }}
+        />
+        {/* Novel watermark title */}
         <span
           style={{
             color: "rgba(255,255,255,0.25)",
-            fontSize: "clamp(11px, 3vw, 13px)",
+            fontSize: "clamp(10px, 2.5vw, 12px)",
             fontWeight: 700,
             textAlign: "center",
-            padding: "0 8px",
+            padding: "0 10px",
             fontFamily: "'Sora', system-ui, sans-serif",
             letterSpacing: "0.04em",
             textTransform: "uppercase",
+            lineHeight: 1.3,
           }}
         >
-          {comic.title}
+          {novel.title}
+        </span>
+        {/* Genre badge */}
+        <span
+          style={{
+            marginTop: "6px",
+            background: "rgba(0,0,0,0.4)",
+            color: "rgba(255,255,255,0.7)",
+            fontSize: "10px",
+            fontWeight: 600,
+            padding: "2px 8px",
+            borderRadius: "999px",
+            letterSpacing: "0.04em",
+          }}
+        >
+          {novel.genre}
         </span>
 
         {/* Bookmark button */}
         {onToggleBookmark && (
           <button
             type="button"
-            data-ocid={`comic.bookmark.${index}`}
+            data-ocid={`novel.bookmark.${index}`}
             aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleBookmark(comic.id);
+              onToggleBookmark(novel.id);
             }}
             style={{
               position: "absolute",
@@ -128,7 +158,7 @@ export default function ComicCard({
             whiteSpace: "nowrap",
           }}
         >
-          {comic.title}
+          {novel.title}
         </p>
         <p
           style={{
@@ -140,7 +170,7 @@ export default function ComicCard({
             whiteSpace: "nowrap",
           }}
         >
-          {comic.author}
+          {novel.author}
         </p>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           <span
@@ -164,7 +194,7 @@ export default function ComicCard({
               <title>likes</title>
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
-            {comic.likes}
+            {novel.likes}
           </span>
           <span
             style={{
@@ -189,7 +219,7 @@ export default function ComicCard({
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-            {comic.views}
+            {novel.views}
           </span>
         </div>
       </div>

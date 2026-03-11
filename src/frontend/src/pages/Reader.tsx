@@ -4,6 +4,8 @@ import type { Comic } from "../types";
 interface ReaderProps {
   comic: Comic | null;
   onBack: () => void;
+  isBookmarked?: boolean;
+  onToggleBookmark?: () => void;
 }
 
 const TOTAL_CHAPTERS = 5;
@@ -19,7 +21,12 @@ const pageGradients = [
   "linear-gradient(180deg, #200060 0%, #5A10B0 100%)",
 ];
 
-export default function Reader({ comic, onBack }: ReaderProps) {
+export default function Reader({
+  comic,
+  onBack,
+  isBookmarked,
+  onToggleBookmark,
+}: ReaderProps) {
   const [chapter, setChapter] = useState(1);
   const title = comic?.title || "Comic";
   const gradient =
@@ -88,6 +95,44 @@ export default function Reader({ comic, onBack }: ReaderProps) {
             Chapter {chapter} of {TOTAL_CHAPTERS}
           </p>
         </div>
+        {onToggleBookmark && (
+          <button
+            type="button"
+            data-ocid="reader.bookmark_button"
+            onClick={onToggleBookmark}
+            aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+            style={{
+              background: "rgba(159, 139, 255, 0.1)",
+              border: "1px solid rgba(159, 139, 255, 0.2)",
+              color: "white",
+              width: "36px",
+              height: "36px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              transition: "background 0.2s",
+            }}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill={isBookmarked ? "#9F8BFF" : "none"}
+              stroke={isBookmarked ? "#9F8BFF" : "rgba(255,255,255,0.7)"}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              role="img"
+              aria-label="bookmark"
+            >
+              <title>bookmark</title>
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Comic pages — vertical scroll */}

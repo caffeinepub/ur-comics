@@ -127,14 +127,14 @@
   background-clip: text;
 }
 
-/* Comic card hover */
+/* Comic card — 3D hover effect */
 .comic-card {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s
-    cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow
+    0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .comic-card:hover {
-  transform: scale(1.03) translateY(-2px);
-  box-shadow: 0 12px 40px rgba(106, 90, 224, 0.35);
+  transform: translateY(-4px) scale(1.02) perspective(600px) rotateX(2deg);
+  box-shadow: 0 12px 32px rgba(106, 90, 224, 0.35);
 }
 
 /* Sidebar transition */
@@ -201,4 +201,46 @@
 .upload-zone.drag-over {
   border-color: var(--color-primary-light);
   background: rgba(106, 90, 224, 0.1);
+}
+
+/* ── Scroll reveal ── */
+.scroll-section {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.scroll-section.section-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Top 3 rank badge animations ── */
+@keyframes rankGoldPulse {
+  0%,
+  100% {
+    text-shadow: 0 0 8px #ffd70099, 0 0 20px #ffd70055;
+  }
+  50% {
+    text-shadow: 0 0 18px #ffd700cc, 0 0 40px #ffd70088, 0 0 60px #ffd70044;
+  }
+}
+
+@keyframes rankSilverPulse {
+  0%,
+  100% {
+    text-shadow: 0 0 8px #c0c0c099, 0 0 20px #c0c0c055;
+  }
+  50% {
+    text-shadow: 0 0 16px #c0c0c0cc, 0 0 34px #c0c0c077;
+  }
+}
+
+@keyframes rankBronzePulse {
+  0%,
+  100% {
+    text-shadow: 0 0 8px #cd7f3299, 0 0 20px #cd7f3255;
+  }
+  50% {
+    text-shadow: 0 0 14px #cd7f32bb, 0 0 28px #cd7f3266;
+  }
 }

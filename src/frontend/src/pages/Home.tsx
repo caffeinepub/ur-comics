@@ -1,9 +1,9 @@
+import { useEffect, useRef, useState } from "react";
 import ComicCard from "../components/ComicCard";
 import FeaturedCreator from "../components/FeaturedCreator";
 import Footer from "../components/Footer";
-import GenreRow from "../components/GenreRow";
-import HeroSlider from "../components/HeroSlider";
-import type { Comic, Page } from "../types";
+import NovelCard from "../components/NovelCard";
+import type { Comic, Novel, Page, ReadingHistoryItem } from "../types";
 
 const comics: Comic[] = [
   {
@@ -64,7 +64,7 @@ const comics: Comic[] = [
     id: 7,
     title: "Crimson Veil",
     author: "DarkInk",
-    genre: "Horror",
+    genre: "Mystery",
     likes: "7.3K",
     views: "61K",
     gradient: "linear-gradient(135deg, #600000, #FF6B6B)",
@@ -196,11 +196,112 @@ const recommendedComics: Comic[] = [
   },
 ];
 
+const popularThisWeek: Comic[] = [comics[2], comics[0], comics[5], comics[6]];
+const mostPopular: Comic[] = [comics[2], comics[0], comics[5], comics[3]];
+const trendingComics: Comic[] = [
+  comics[0],
+  comics[2],
+  comics[4],
+  comics[6],
+  comics[1],
+  comics[7],
+  comics[3],
+  comics[5],
+];
+
+// Top 10 data — pad to 10 by cycling through available items
+const ALL_COMICS_PADDED: Comic[] = [...comics, ...comics.slice(0, 2)];
+const TOP10_COMICS = ALL_COMICS_PADDED.slice(0, 10);
+
+const GENRE_STYLES: Record<string, { background: string; boxShadow: string }> =
+  {
+    All: {
+      background: "linear-gradient(135deg, #6A5AE0, #9F8BFF)",
+      boxShadow: "0 2px 10px rgba(106,90,224,0.5)",
+    },
+    Action: {
+      background: "linear-gradient(135deg, #8B0000, #DC143C)",
+      boxShadow: "0 2px 10px rgba(220,20,60,0.4)",
+    },
+    Fantasy: {
+      background: "linear-gradient(135deg, #003080, #4B8BFF)",
+      boxShadow: "0 2px 10px rgba(75,139,255,0.4)",
+    },
+    Romance: {
+      background: "linear-gradient(135deg, #8B0057, #FF69B4)",
+      boxShadow: "0 2px 10px rgba(255,105,180,0.4)",
+    },
+    Horror: {
+      background: "linear-gradient(135deg, #1a0000, #8B0000)",
+      boxShadow: "0 2px 10px rgba(139,0,0,0.5)",
+    },
+    Comedy: {
+      background: "linear-gradient(135deg, #8B6000, #FFB800)",
+      boxShadow: "0 2px 10px rgba(255,184,0,0.4)",
+    },
+    "Sci-Fi": {
+      background: "linear-gradient(135deg, #005080, #00CED1)",
+      boxShadow: "0 2px 10px rgba(0,206,209,0.4)",
+    },
+    Mystery: {
+      background: "linear-gradient(135deg, #2E0854, #7B3FA0)",
+      boxShadow: "0 2px 10px rgba(123,63,160,0.5)",
+    },
+    Drama: {
+      background: "linear-gradient(135deg, #4A0080, #9F8BFF)",
+      boxShadow: "0 2px 10px rgba(159,139,255,0.4)",
+    },
+  };
+
+const GENRE_LIST = [
+  "All",
+  "Action",
+  "Fantasy",
+  "Romance",
+  "Horror",
+  "Comedy",
+  "Sci-Fi",
+  "Mystery",
+  "Drama",
+];
+
+const PLACEHOLDER_HISTORY: ReadingHistoryItem[] = [
+  {
+    id: 1,
+    title: "Shadow Chronicles",
+    chapter: "Ch. 3",
+    progress: 60,
+    gradient: "linear-gradient(135deg, #4A0080, #9F8BFF)",
+    type: "comic",
+  },
+  {
+    id: 3,
+    title: "Neon Nights",
+    chapter: "Ch. 8",
+    progress: 45,
+    gradient: "linear-gradient(135deg, #003080, #8BB0FF)",
+    type: "comic",
+  },
+  {
+    id: 104,
+    title: "Paper Cranes",
+    chapter: "Ch. 2",
+    progress: 80,
+    gradient: "linear-gradient(135deg, #600030, #FF6BAA)",
+    type: "novel",
+  },
+];
+
 interface HomeProps {
   onReadComic: (comic: Comic) => void;
+  onReadNovel: (novel: Novel) => void;
   onNavigate: (page: Page) => void;
   onReadFeatured: () => void;
   searchQuery: string;
+  bookmarkedIds: Set<number>;
+  onToggleBookmark: (id: number) => void;
+  readingHistory: ReadingHistoryItem[];
+  allNovels: Novel[];
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -214,6 +315,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
           fontFamily: "'Sora', system-ui, sans-serif",
           margin: "0 0 8px",
           letterSpacing: "-0.01em",
+          textShadow:
+            "0 0 20px rgba(159, 139, 255, 0.6), 0 0 40px rgba(106, 90, 224, 0.3)",
         }}
       >
         {children}
@@ -248,17 +351,233 @@ function EmptyState({ dataOcid }: { dataOcid: string }) {
   );
 }
 
+// Lightweight scroll reveal hook
+function useScrollReveal() {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("section-revealed");
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.08 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
+
+// Rank badge colors
+const RANK_COLORS: Record<number, string> = {
+  1: "#FFD700",
+  2: "#C0C0C0",
+  3: "#CD7F32",
+};
+const RANK_ANIM: Record<number, string> = {
+  1: "rankGoldPulse 2s ease-in-out infinite",
+  2: "rankSilverPulse 2.4s ease-in-out infinite",
+  3: "rankBronzePulse 2.8s ease-in-out infinite",
+};
+
+function RankItem({
+  rank,
+  title,
+  author,
+  views,
+  likes,
+  gradient,
+}: {
+  rank: number;
+  title: string;
+  author: string;
+  views: string;
+  likes: string;
+  gradient: string;
+}) {
+  const isTop3 = rank <= 3;
+  const rankColor = RANK_COLORS[rank] || "rgba(255,255,255,0.5)";
+  const anim = RANK_ANIM[rank];
+
+  return (
+    <div
+      data-ocid={`home.top10.item.${rank}`}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        padding: "10px 16px",
+        borderBottom: "1px solid rgba(159,139,255,0.08)",
+        transition: "background 0.2s",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLDivElement).style.background =
+          "rgba(159,139,255,0.06)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.background = "transparent";
+      }}
+    >
+      {/* Rank number */}
+      <div
+        style={{
+          width: "32px",
+          flexShrink: 0,
+          textAlign: "center",
+          position: "relative",
+        }}
+      >
+        <span
+          style={{
+            fontSize: isTop3 ? "22px" : "17px",
+            fontWeight: 900,
+            fontFamily: "'Sora', system-ui, sans-serif",
+            color: rankColor,
+            display: "inline-block",
+            animation: anim,
+            textShadow: isTop3
+              ? `0 0 12px ${rankColor}88, 0 0 24px ${rankColor}44`
+              : "none",
+          }}
+        >
+          {rank}
+        </span>
+      </div>
+
+      {/* Cover thumbnail */}
+      <div
+        style={{
+          width: "48px",
+          height: "64px",
+          borderRadius: "6px",
+          background: gradient,
+          flexShrink: 0,
+          border: isTop3
+            ? `1px solid ${rankColor}55`
+            : "1px solid rgba(255,255,255,0.1)",
+          boxShadow: isTop3 ? `0 0 10px ${rankColor}33` : "none",
+        }}
+      />
+
+      {/* Title + Author */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p
+          style={{
+            color: "white",
+            fontWeight: 700,
+            fontSize: "13px",
+            margin: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {title}
+        </p>
+        <p
+          style={{
+            color: "var(--color-text-muted)",
+            fontSize: "11px",
+            margin: "2px 0 0",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {author}
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div
+        style={{
+          flexShrink: 0,
+          textAlign: "right",
+          display: "flex",
+          flexDirection: "column",
+          gap: "2px",
+        }}
+      >
+        <span
+          style={{
+            color: "var(--color-text-muted)",
+            fontSize: "10px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: "3px",
+          }}
+        >
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            role="img"
+            aria-label="views"
+          >
+            <title>views</title>
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          {views}
+        </span>
+        <span
+          style={{
+            color: "var(--color-text-muted)",
+            fontSize: "10px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: "3px",
+          }}
+        >
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="#f87171"
+            stroke="none"
+            role="img"
+            aria-label="likes"
+          >
+            <title>likes</title>
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          {likes}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function Home({
   onReadComic,
+  onReadNovel,
   onNavigate,
   onReadFeatured,
   searchQuery,
+  bookmarkedIds,
+  onToggleBookmark,
+  readingHistory,
+  allNovels,
 }: HomeProps) {
+  const [activeGenre, setActiveGenre] = useState("All");
+  const [top10Tab, setTop10Tab] = useState<"comics" | "novels">("comics");
   const q = searchQuery.toLowerCase().trim();
+
+  const displayHistory =
+    readingHistory.length === 0 ? PLACEHOLDER_HISTORY : readingHistory;
 
   const filteredComics = q
     ? comics.filter((c) => c.title.toLowerCase().includes(q))
-    : comics;
+    : trendingComics;
   const filteredUpdates = q
     ? latestUpdates.filter((u) => u.title.toLowerCase().includes(q))
     : latestUpdates;
@@ -269,109 +588,190 @@ export default function Home({
     ? recommendedComics.filter((c) => c.title.toLowerCase().includes(q))
     : recommendedComics;
 
+  const genreFilteredComics =
+    activeGenre === "All"
+      ? comics
+      : comics.filter((c) => c.genre === activeGenre);
+
+  // Top 10 novels list (pad to 10)
+  const top10Novels = [...allNovels, ...allNovels, ...allNovels].slice(0, 10);
+
+  // Refs for scroll reveal
+  const refContinue = useScrollReveal();
+  const refUpdates = useScrollReveal();
+  const refTrending = useScrollReveal();
+  const refPopularWeek = useScrollReveal();
+  const refMostPopular = useScrollReveal();
+  const refTop10 = useScrollReveal();
+  const refGenre = useScrollReveal();
+  const refRecommended = useScrollReveal();
+  const refCreator = useScrollReveal();
+  const refNovels = useScrollReveal();
+
+  const comicGrid = (list: Comic[], ocidPrefix: string) => (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gap: "12px",
+        padding: "0 16px",
+      }}
+      className="sm:grid-cols-4"
+    >
+      {list.map((comic, i) => (
+        <ComicCard
+          key={`${ocidPrefix}-${comic.id}`}
+          comic={comic}
+          index={i + 1}
+          onClick={() => onReadComic(comic)}
+          isBookmarked={bookmarkedIds.has(comic.id)}
+          onToggleBookmark={onToggleBookmark}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <div style={{ paddingBottom: "40px" }}>
-      {/* 0. Featured Creator — always first */}
+      {/* ── Section 1: Featured Story ── */}
       <FeaturedCreator onReadNow={onReadFeatured} />
 
-      {/* 1. Hero Slider — only when not searching */}
-      {!q && (
-        <section style={{ marginTop: "20px" }}>
-          <HeroSlider onReadNow={onReadComic} />
-        </section>
-      )}
-
-      {/* 2. Genre Row */}
-      {!q && (
-        <section style={{ marginTop: "24px" }}>
-          <GenreRow />
-        </section>
-      )}
-
-      {/* 3. Trending Comics */}
-      <section style={{ marginTop: "40px" }}>
-        <SectionTitle>Trending Comics</SectionTitle>
-        {filteredComics.length === 0 ? (
-          <EmptyState dataOcid="home.popular.empty_state" />
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "12px",
-              padding: "0 16px",
-            }}
-            className="sm:grid-cols-4"
-          >
-            {filteredComics.map((comic, i) => (
-              <ComicCard
-                key={comic.id}
-                comic={comic}
-                index={i + 1}
-                onClick={() => onReadComic(comic)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* 4. Featured Creators */}
-      <section style={{ marginTop: "40px" }}>
+      {/* ── Section 2: Continue Reading ── */}
+      <section
+        ref={refContinue}
+        data-ocid="home.continue_reading.section"
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <SectionTitle>Continue Reading</SectionTitle>
         <div
           style={{
             display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            paddingRight: "16px",
+            gap: "12px",
+            overflowX: "auto",
+            padding: "0 16px 8px",
+            scrollbarWidth: "none",
           }}
         >
-          <SectionTitle>Featured Creators</SectionTitle>
-          <button
-            type="button"
-            onClick={() => onNavigate("upload")}
-            style={{
-              background: "none",
-              border: "1px solid rgba(159, 139, 255, 0.3)",
-              color: "var(--color-primary-light)",
-              fontSize: "13px",
-              fontWeight: 600,
-              cursor: "pointer",
-              padding: "6px 14px",
-              borderRadius: "999px",
-              fontFamily: "inherit",
-              transition: "all 0.2s",
-              marginTop: "2px",
-            }}
-          >
-            Upload +
-          </button>
+          {displayHistory.map((item, i) => (
+            <div
+              key={`${item.type}-${item.id}`}
+              data-ocid={`home.continue_reading.item.${i + 1}`}
+              style={{
+                flexShrink: 0,
+                width: "140px",
+                borderRadius: "12px",
+                overflow: "hidden",
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                cursor: "pointer",
+              }}
+            >
+              {/* Cover */}
+              <div
+                style={{
+                  background: item.gradient,
+                  height: "100px",
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span
+                  style={{
+                    color: "rgba(255,255,255,0.25)",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    textAlign: "center",
+                    padding: "0 8px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                    fontFamily: "'Sora', system-ui, sans-serif",
+                  }}
+                >
+                  {item.title}
+                </span>
+                {/* Type badge */}
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "6px",
+                    left: "6px",
+                    background:
+                      item.type === "novel"
+                        ? "rgba(255, 200, 100, 0.8)"
+                        : "rgba(106, 90, 224, 0.8)",
+                    color: "white",
+                    fontSize: "9px",
+                    fontWeight: 700,
+                    padding: "2px 6px",
+                    borderRadius: "999px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  {item.type === "novel" ? "Novel" : "Comic"}
+                </span>
+              </div>
+              {/* Info */}
+              <div style={{ padding: "8px 10px 10px" }}>
+                <p
+                  style={{
+                    color: "white",
+                    fontWeight: 700,
+                    fontSize: "12px",
+                    margin: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {item.title}
+                </p>
+                {/* Progress bar */}
+                <div
+                  style={{
+                    marginTop: "6px",
+                    height: "3px",
+                    borderRadius: "999px",
+                    background: "rgba(255,255,255,0.1)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${item.progress}%`,
+                      borderRadius: "999px",
+                      background: "linear-gradient(90deg, #6A5AE0, #9F8BFF)",
+                      transition: "width 0.6s ease",
+                    }}
+                  />
+                </div>
+                <p
+                  style={{
+                    color: "var(--color-text-muted)",
+                    fontSize: "10px",
+                    margin: "5px 0 0",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {item.chapter} • {item.progress}% completed
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
-        {filteredCreator.length === 0 ? (
-          <EmptyState dataOcid="home.creator.empty_state" />
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "12px",
-              padding: "0 16px",
-            }}
-          >
-            {filteredCreator.map((comic, i) => (
-              <ComicCard
-                key={comic.id}
-                comic={comic}
-                index={i + 1}
-                onClick={() => onReadComic(comic)}
-              />
-            ))}
-          </div>
-        )}
       </section>
 
-      {/* 5. Latest Uploaded Chapters */}
-      <section style={{ marginTop: "40px" }}>
-        <SectionTitle>Latest Uploaded Chapters</SectionTitle>
+      {/* ── Section 3: Recently Updated Chapters ── */}
+      <section
+        ref={refUpdates}
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <SectionTitle>Recently Updated Chapters</SectionTitle>
         {filteredUpdates.length === 0 ? (
           <EmptyState dataOcid="home.updates.empty_state" />
         ) : (
@@ -446,49 +846,279 @@ export default function Home({
                       margin: "3px 0 0",
                     }}
                   >
-                    {item.chapter}
+                    {item.chapter} • {item.time}
                   </p>
                 </div>
-                <span
-                  style={{
-                    color: "var(--color-text-muted)",
-                    fontSize: "12px",
-                    flexShrink: 0,
-                  }}
-                >
-                  {item.time}
-                </span>
               </button>
             ))}
           </div>
         )}
       </section>
 
-      {/* 6. Recommended For You */}
-      <section style={{ marginTop: "40px" }}>
+      {/* ── Section 4: Trending Now ── */}
+      <section
+        ref={refTrending}
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <SectionTitle>Trending Now</SectionTitle>
+        {filteredComics.length === 0 ? (
+          <EmptyState dataOcid="home.trending.empty_state" />
+        ) : (
+          comicGrid(filteredComics, "trending")
+        )}
+      </section>
+
+      {/* ── Section 5: Popular This Week ── */}
+      <section
+        ref={refPopularWeek}
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <SectionTitle>Popular This Week</SectionTitle>
+        {comicGrid(popularThisWeek, "ptw")}
+      </section>
+
+      {/* ── Section 6: Most Popular ── */}
+      <section
+        ref={refMostPopular}
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <SectionTitle>Most Popular</SectionTitle>
+        {comicGrid(mostPopular, "mp")}
+      </section>
+
+      {/* ── Section 7: Top 10 Ranking ── */}
+      <section
+        ref={refTop10}
+        data-ocid="home.top10.section"
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <SectionTitle>Top 10 Ranking</SectionTitle>
+        {/* Tab bar */}
+        <div
+          style={{
+            display: "flex",
+            gap: "0",
+            padding: "0 16px 0",
+            marginBottom: "0",
+          }}
+        >
+          {(["comics", "novels"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              data-ocid={`home.top10.${tab}.tab`}
+              onClick={() => setTop10Tab(tab)}
+              style={{
+                flex: 1,
+                padding: "10px 0",
+                background:
+                  top10Tab === tab
+                    ? "rgba(106, 90, 224, 0.15)"
+                    : "rgba(255,255,255,0.03)",
+                border: "none",
+                borderBottom:
+                  top10Tab === tab
+                    ? "2px solid #9F8BFF"
+                    : "2px solid rgba(255,255,255,0.08)",
+                color: top10Tab === tab ? "white" : "var(--color-text-muted)",
+                fontWeight: top10Tab === tab ? 700 : 500,
+                fontSize: "14px",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textTransform: "capitalize",
+                transition: "all 0.2s",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              {tab === "comics" ? "Comics" : "Novels"}
+            </button>
+          ))}
+        </div>
+
+        {/* Ranking list */}
+        <div
+          style={{
+            background: "var(--color-surface)",
+            margin: "0 16px",
+            borderRadius: "0 0 12px 12px",
+            border: "1px solid var(--color-border)",
+            borderTop: "none",
+            overflow: "hidden",
+          }}
+        >
+          {top10Tab === "comics"
+            ? TOP10_COMICS.map((comic, i) => (
+                <RankItem
+                  key={`rank-comic-${comic.id}-${i}`}
+                  rank={i + 1}
+                  title={comic.title}
+                  author={comic.author}
+                  views={comic.views}
+                  likes={comic.likes}
+                  gradient={comic.gradient}
+                />
+              ))
+            : top10Novels.map((novel, i) => (
+                <RankItem
+                  key={`rank-novel-${novel.id}-${i}`}
+                  rank={i + 1}
+                  title={novel.title}
+                  author={novel.author}
+                  views={novel.views}
+                  likes={novel.likes}
+                  gradient={novel.gradient}
+                />
+              ))}
+        </div>
+      </section>
+
+      {/* ── Section 8: Genre Explorer ── */}
+      <section
+        ref={refGenre}
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <SectionTitle>Genre Explorer</SectionTitle>
+        {/* Genre chips */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            overflowX: "auto",
+            padding: "0 16px 16px",
+            scrollbarWidth: "none",
+          }}
+        >
+          {GENRE_LIST.map((genre) => {
+            const style = GENRE_STYLES[genre] || GENRE_STYLES.All;
+            const isActive = activeGenre === genre;
+            return (
+              <button
+                key={genre}
+                type="button"
+                data-ocid="genre.tab"
+                onClick={() => setActiveGenre(genre)}
+                style={{
+                  flexShrink: 0,
+                  padding: "7px 16px",
+                  borderRadius: "999px",
+                  border: isActive
+                    ? "2px solid rgba(255,255,255,0.4)"
+                    : "2px solid transparent",
+                  background: isActive
+                    ? style.background
+                    : "rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  boxShadow: isActive ? style.boxShadow : "none",
+                  transition: "all 0.2s",
+                  whiteSpace: "nowrap",
+                  opacity: isActive ? 1 : 0.7,
+                }}
+              >
+                {genre}
+              </button>
+            );
+          })}
+        </div>
+        {/* Filtered comic grid */}
+        {genreFilteredComics.length === 0 ? (
+          <EmptyState dataOcid="home.genre.empty_state" />
+        ) : (
+          comicGrid(genreFilteredComics, "genre")
+        )}
+      </section>
+
+      {/* ── Section 9: Recommended For You ── */}
+      <section
+        ref={refRecommended}
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
         <SectionTitle>Recommended For You</SectionTitle>
         {filteredRecommended.length === 0 ? (
           <EmptyState dataOcid="home.recommended.empty_state" />
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "12px",
-              padding: "0 16px",
-            }}
-            className="sm:grid-cols-4"
-          >
-            {filteredRecommended.map((comic, i) => (
-              <ComicCard
-                key={comic.id}
-                comic={comic}
-                index={i + 1}
-                onClick={() => onReadComic(comic)}
-              />
-            ))}
-          </div>
+          comicGrid(filteredRecommended, "rec")
         )}
+      </section>
+
+      {/* ── Section 10: Creator Spotlight ── */}
+      <section
+        ref={refCreator}
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            paddingRight: "16px",
+          }}
+        >
+          <SectionTitle>Creator Spotlight</SectionTitle>
+          <button
+            type="button"
+            onClick={() => onNavigate("upload")}
+            style={{
+              background: "none",
+              border: "1px solid rgba(159, 139, 255, 0.3)",
+              color: "var(--color-primary-light)",
+              fontSize: "13px",
+              fontWeight: 600,
+              cursor: "pointer",
+              padding: "6px 14px",
+              borderRadius: "999px",
+              fontFamily: "inherit",
+              transition: "all 0.2s",
+              marginTop: "2px",
+            }}
+          >
+            Upload +
+          </button>
+        </div>
+        {filteredCreator.length === 0 ? (
+          <EmptyState dataOcid="home.creator.empty_state" />
+        ) : (
+          comicGrid(filteredCreator, "creator")
+        )}
+      </section>
+
+      {/* ── Section 11: Original Novels ── */}
+      <section
+        ref={refNovels}
+        className="scroll-section"
+        style={{ marginTop: "40px" }}
+      >
+        <SectionTitle>Original Novels</SectionTitle>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: "12px",
+            padding: "0 16px",
+          }}
+          className="sm:grid-cols-4"
+        >
+          {allNovels.map((novel, i) => (
+            <NovelCard
+              key={novel.id}
+              novel={novel}
+              index={i + 1}
+              onClick={() => onReadNovel(novel)}
+              isBookmarked={bookmarkedIds.has(novel.id)}
+              onToggleBookmark={onToggleBookmark}
+            />
+          ))}
+        </div>
       </section>
 
       <Footer />

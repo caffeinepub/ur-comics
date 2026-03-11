@@ -9,7 +9,40 @@ export interface Comic {
   description?: string;
 }
 
-export type Page = "home" | "reader" | "upload";
+export interface NovelChapter {
+  id: number;
+  title: string;
+  content: string;
+}
+
+export interface Novel {
+  id: number;
+  title: string;
+  author: string;
+  genre: string;
+  description: string;
+  likes: string;
+  views: string;
+  gradient: string;
+  chapters: NovelChapter[];
+}
+
+export interface ReadingHistoryItem {
+  id: number;
+  title: string;
+  chapter: string;
+  progress: number;
+  gradient: string;
+  type: "comic" | "novel";
+}
+
+export type Page =
+  | "home"
+  | "reader"
+  | "upload"
+  | "novel_detail"
+  | "novel_reader"
+  | "bookmarks";
 
 // Legacy exports for useQueries compatibility
 export const SAMPLE_COMICS: Comic[] = [

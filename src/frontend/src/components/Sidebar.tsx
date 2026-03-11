@@ -32,6 +32,12 @@ const navItems = [
     icon: "📚",
   },
   {
+    label: "Bookmarks",
+    ocid: "sidebar.bookmarks_link",
+    page: "bookmarks" as Page,
+    icon: "🔖",
+  },
+  {
     label: "Upload",
     ocid: "sidebar.upload_link",
     page: "upload" as Page,
