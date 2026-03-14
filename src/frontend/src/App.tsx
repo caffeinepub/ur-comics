@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
+import AdminFAQ from "./pages/AdminFAQ";
 import Bookmarks from "./pages/Bookmarks";
+import FAQ from "./pages/FAQ";
 import Home from "./pages/Home";
 import NovelDetail from "./pages/NovelDetail";
 import NovelReader from "./pages/NovelReader";
@@ -290,18 +292,68 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
+  // initialChapter/scrollPosition used when navigating to reader from Continue Reading
+  const initialChapterRef = useRef(1);
+  const initialScrollRef = useRef(0);
+
+  // Load reading history from localStorage on mount
   const [readingHistory, setReadingHistory] = useState<ReadingHistoryItem[]>(
-    [],
+    () => {
+      try {
+        const stored = localStorage.getItem("ur_comics_reading_history");
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
+      }
+    },
   );
 
-  const addToHistory = (item: ReadingHistoryItem) => {
+  // Persist history to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "ur_comics_reading_history",
+        JSON.stringify(readingHistory),
+      );
+    } catch {
+      // Storage unavailable
+    }
+  }, [readingHistory]);
+
+  const addToHistory = useCallback((item: ReadingHistoryItem) => {
     setReadingHistory((prev) => {
       const filtered = prev.filter(
         (h) => !(h.id === item.id && h.type === item.type),
       );
       return [item, ...filtered].slice(0, 10);
     });
-  };
+  }, []);
+
+  // Update progress for an existing history item (called continuously from readers)
+  const updateProgress = useCallback(
+    (
+      id: number,
+      type: "comic" | "novel",
+      chapterNumber: number,
+      scrollPosition: number,
+      progressPercentage: number,
+    ) => {
+      setReadingHistory((prev) =>
+        prev.map((h) =>
+          h.id === id && h.type === type
+            ? {
+                ...h,
+                chapter: `Ch. ${chapterNumber}`,
+                chapterNumber,
+                scrollPosition,
+                progress: progressPercentage,
+              }
+            : h,
+        ),
+      );
+    },
+    [],
+  );
 
   const toggleBookmark = (id: number) => {
     setBookmarkedIds((prev) => {
@@ -328,32 +380,74 @@ export default function App() {
   };
 
   const handleReadComic = (comic: Comic) => {
-    addToHistory({
-      id: comic.id,
-      title: comic.title,
-      chapter: "Ch. 1",
-      progress: 30,
-      gradient: comic.gradient,
-      type: "comic",
-    });
+    // Check for existing progress
+    const existing = readingHistory.find(
+      (h) => h.id === comic.id && h.type === "comic",
+    );
+    if (!existing) {
+      addToHistory({
+        id: comic.id,
+        title: comic.title,
+        chapter: "Ch. 1",
+        chapterNumber: 1,
+        scrollPosition: 0,
+        progress: 0,
+        gradient: comic.gradient,
+        type: "comic",
+      });
+    }
+    initialChapterRef.current = existing?.chapterNumber ?? 1;
+    initialScrollRef.current = existing?.scrollPosition ?? 0;
     navigate("reader", comic);
   };
 
+  // Handle Continue Reading click — open at exact chapter and scroll position
+  const handleContinueReading = useCallback((item: ReadingHistoryItem) => {
+    if (item.type === "comic") {
+      const comic = ALL_COMICS.find((c) => c.id === item.id) ?? ALL_COMICS[0];
+      initialChapterRef.current = item.chapterNumber;
+      initialScrollRef.current = item.scrollPosition;
+      setSelectedComic(comic);
+      setCurrentPage("reader");
+      window.scrollTo({ top: 0 });
+    } else {
+      const novel = ALL_NOVELS.find((n) => n.id === item.id);
+      if (!novel) return;
+      setSelectedNovel(novel);
+      // Find the chapter by number (index)
+      const chapterIdx = Math.max(0, item.chapterNumber - 1);
+      const chapterId =
+        novel.chapters[chapterIdx]?.id ?? novel.chapters[0]?.id ?? 1;
+      initialScrollRef.current = item.scrollPosition;
+      setSelectedNovelChapter(chapterId);
+      setCurrentPage("novel_reader");
+      window.scrollTo({ top: 0 });
+    }
+  }, []);
+
   const handleReadNovel = (novel: Novel) => {
-    addToHistory({
-      id: novel.id,
-      title: novel.title,
-      chapter: "Ch. 1",
-      progress: 15,
-      gradient: novel.gradient,
-      type: "novel",
-    });
+    const existing = readingHistory.find(
+      (h) => h.id === novel.id && h.type === "novel",
+    );
+    if (!existing) {
+      addToHistory({
+        id: novel.id,
+        title: novel.title,
+        chapter: "Ch. 1",
+        chapterNumber: 1,
+        scrollPosition: 0,
+        progress: 0,
+        gradient: novel.gradient,
+        type: "novel",
+      });
+    }
     setSelectedNovel(novel);
     setCurrentPage("novel_detail");
     window.scrollTo({ top: 0 });
   };
 
   const handleReadNovelChapter = (chapterId: number) => {
+    initialScrollRef.current = 0;
     setSelectedNovelChapter(chapterId);
     setCurrentPage("novel_reader");
     window.scrollTo({ top: 0 });
@@ -408,6 +502,7 @@ export default function App() {
               onToggleBookmark={toggleBookmark}
               readingHistory={readingHistory}
               allNovels={ALL_NOVELS}
+              onContinueReading={handleContinueReading}
             />
           </div>
         )}
@@ -424,6 +519,12 @@ export default function App() {
                   ? () => toggleBookmark(selectedComic.id)
                   : undefined
               }
+              initialChapter={initialChapterRef.current}
+              initialScrollPosition={initialScrollRef.current}
+              onUpdateProgress={(ch, scroll, pct) => {
+                if (selectedComic)
+                  updateProgress(selectedComic.id, "comic", ch, scroll, pct);
+              }}
             />
           </div>
         )}
@@ -449,6 +550,11 @@ export default function App() {
               onBack={() => setCurrentPage("novel_detail")}
               onPrev={handleNovelPrev}
               onNext={handleNovelNext}
+              initialScrollPosition={initialScrollRef.current}
+              onUpdateProgress={(ch, scroll, pct) => {
+                if (selectedNovel)
+                  updateProgress(selectedNovel.id, "novel", ch, scroll, pct);
+              }}
             />
           </div>
         )}
@@ -463,6 +569,16 @@ export default function App() {
               onReadNovel={handleReadNovel}
               onBack={() => navigate("home")}
             />
+          </div>
+        )}
+        {currentPage === "faq" && (
+          <div className="page-enter">
+            <FAQ onBack={() => navigate("home")} onNavigate={navigate} />
+          </div>
+        )}
+        {currentPage === "admin" && (
+          <div className="page-enter">
+            <AdminFAQ onNavigate={navigate} />
           </div>
         )}
       </main>

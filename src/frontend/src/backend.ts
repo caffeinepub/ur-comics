@@ -89,6 +89,26 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface SubmittedQuestion {
+    id: bigint;
+    status: string;
+    question: string;
+    name?: string;
+    submittedAt: bigint;
+    answer: string;
+    email?: string;
+}
+export interface FaqItem {
+    id: bigint;
+    question: string;
+    createdAt: bigint;
+    answer: string;
+    viewCount: bigint;
+    approved: boolean;
+    notHelpfulCount: bigint;
+    category: string;
+    helpfulCount: bigint;
+}
 export interface Comic {
     id: bigint;
     title: string;
@@ -100,14 +120,67 @@ export interface Comic {
     genre: string;
 }
 export interface backendInterface {
+    answerQuestion(password: string, questionId: bigint, answer: string): Promise<boolean>;
+    approveQuestion(password: string, questionId: bigint, answer: string): Promise<boolean>;
+    getAllApprovedFaqs(): Promise<Array<FaqItem>>;
     getAllComics(): Promise<Array<Comic>>;
     getAllGenres(): Promise<Array<string>>;
+    getAllSubmittedQuestions(): Promise<Array<SubmittedQuestion>>;
     getComicById(id: bigint): Promise<Comic | null>;
     getComicsByGenre(genre: string): Promise<Array<Comic>>;
+    getFaqsByCategory(category: string): Promise<Array<FaqItem>>;
+    getPopularFaqs(): Promise<Array<FaqItem>>;
+    recordFaqView(id: bigint): Promise<boolean>;
+    rejectQuestion(password: string, questionId: bigint): Promise<boolean>;
+    submitQuestion(name: string | null, email: string | null, question: string): Promise<bigint>;
+    verifyAdminPassword(password: string): Promise<boolean>;
+    voteHelpful(id: bigint, helpful: boolean): Promise<boolean>;
 }
-import type { Comic as _Comic } from "./declarations/backend.did.d.ts";
+import type { Comic as _Comic, SubmittedQuestion as _SubmittedQuestion } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async answerQuestion(arg0: string, arg1: bigint, arg2: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.answerQuestion(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.answerQuestion(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async approveQuestion(arg0: string, arg1: bigint, arg2: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.approveQuestion(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.approveQuestion(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async getAllApprovedFaqs(): Promise<Array<FaqItem>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllApprovedFaqs();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllApprovedFaqs();
+            return result;
+        }
+    }
     async getAllComics(): Promise<Array<Comic>> {
         if (this.processError) {
             try {
@@ -136,18 +209,32 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAllSubmittedQuestions(): Promise<Array<SubmittedQuestion>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllSubmittedQuestions();
+                return from_candid_vec_n1(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllSubmittedQuestions();
+            return from_candid_vec_n1(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getComicById(arg0: bigint): Promise<Comic | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getComicById(arg0);
-                return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n5(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getComicById(arg0);
-            return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n5(this._uploadFile, this._downloadFile, result);
         }
     }
     async getComicsByGenre(arg0: string): Promise<Array<Comic>> {
@@ -164,9 +251,146 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getFaqsByCategory(arg0: string): Promise<Array<FaqItem>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getFaqsByCategory(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getFaqsByCategory(arg0);
+            return result;
+        }
+    }
+    async getPopularFaqs(): Promise<Array<FaqItem>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getPopularFaqs();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getPopularFaqs();
+            return result;
+        }
+    }
+    async recordFaqView(arg0: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.recordFaqView(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.recordFaqView(arg0);
+            return result;
+        }
+    }
+    async rejectQuestion(arg0: string, arg1: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.rejectQuestion(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.rejectQuestion(arg0, arg1);
+            return result;
+        }
+    }
+    async submitQuestion(arg0: string | null, arg1: string | null, arg2: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.submitQuestion(to_candid_opt_n6(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n6(this._uploadFile, this._downloadFile, arg1), arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.submitQuestion(to_candid_opt_n6(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n6(this._uploadFile, this._downloadFile, arg1), arg2);
+            return result;
+        }
+    }
+    async verifyAdminPassword(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.verifyAdminPassword(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.verifyAdminPassword(arg0);
+            return result;
+        }
+    }
+    async voteHelpful(arg0: bigint, arg1: boolean): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.voteHelpful(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.voteHelpful(arg0, arg1);
+            return result;
+        }
+    }
 }
-function from_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Comic]): Comic | null {
+function from_candid_SubmittedQuestion_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _SubmittedQuestion): SubmittedQuestion {
+    return from_candid_record_n3(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Comic]): Comic | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    status: string;
+    question: string;
+    name: [] | [string];
+    submittedAt: bigint;
+    answer: string;
+    email: [] | [string];
+}): {
+    id: bigint;
+    status: string;
+    question: string;
+    name?: string;
+    submittedAt: bigint;
+    answer: string;
+    email?: string;
+} {
+    return {
+        id: value.id,
+        status: value.status,
+        question: value.question,
+        name: record_opt_to_undefined(from_candid_opt_n4(_uploadFile, _downloadFile, value.name)),
+        submittedAt: value.submittedAt,
+        answer: value.answer,
+        email: record_opt_to_undefined(from_candid_opt_n4(_uploadFile, _downloadFile, value.email))
+    };
+}
+function from_candid_vec_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_SubmittedQuestion>): Array<SubmittedQuestion> {
+    return value.map((x)=>from_candid_SubmittedQuestion_n2(_uploadFile, _downloadFile, x));
+}
+function to_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
+    return value === null ? candid_none() : candid_some(value);
 }
 export interface CreateActorOptions {
     agent?: Agent;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Comic } from "../types";
 
 interface ReaderProps {
@@ -6,6 +6,13 @@ interface ReaderProps {
   onBack: () => void;
   isBookmarked?: boolean;
   onToggleBookmark?: () => void;
+  initialChapter?: number;
+  initialScrollPosition?: number;
+  onUpdateProgress?: (
+    chapterNumber: number,
+    scrollPosition: number,
+    progressPercentage: number,
+  ) => void;
 }
 
 const TOTAL_CHAPTERS = 5;
@@ -26,11 +33,70 @@ export default function Reader({
   onBack,
   isBookmarked,
   onToggleBookmark,
+  initialChapter = 1,
+  initialScrollPosition = 0,
+  onUpdateProgress,
 }: ReaderProps) {
-  const [chapter, setChapter] = useState(1);
+  const [chapter, setChapter] = useState(initialChapter);
+  const scrollRestoredRef = useRef(false);
   const title = comic?.title || "Comic";
   const gradient =
     comic?.gradient || "linear-gradient(135deg, #4A0080, #9F8BFF)";
+
+  // Auto-scroll to saved position on mount (only once)
+  useEffect(() => {
+    if (initialScrollPosition > 0 && !scrollRestoredRef.current) {
+      scrollRestoredRef.current = true;
+      // Small delay to let the page render fully
+      const timer = setTimeout(() => {
+        window.scrollTo({ top: initialScrollPosition, behavior: "smooth" });
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [initialScrollPosition]);
+
+  // When chapter changes (prev/next), scroll to top and reset restoration flag
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scrollRestoredRef is intentionally excluded
+  useEffect(() => {
+    scrollRestoredRef.current = true;
+    window.scrollTo({ top: 0 });
+  }, [chapter]);
+
+  // Continuous scroll tracking
+  useEffect(() => {
+    if (!comic) return;
+    let throttleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const handleScroll = () => {
+      if (throttleTimer) return;
+      throttleTimer = setTimeout(() => {
+        throttleTimer = null;
+        const scrollTop = window.scrollY;
+        const docHeight =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const pct =
+          docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
+
+        // Save to localStorage
+        const key = `reading_progress_comic_${comic.id}`;
+        const data = {
+          comicId: comic.id,
+          chapterNumber: chapter,
+          scrollPosition: scrollTop,
+          progressPercentage: pct,
+        };
+        localStorage.setItem(key, JSON.stringify(data));
+
+        onUpdateProgress?.(chapter, scrollTop, pct);
+      }, 250);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (throttleTimer) clearTimeout(throttleTimer);
+    };
+  }, [comic, chapter, onUpdateProgress]);
 
   return (
     <div style={{ minHeight: "100vh", background: "#080610" }}>

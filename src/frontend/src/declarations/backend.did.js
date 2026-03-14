@@ -8,6 +8,17 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const FaqItem = IDL.Record({
+  'id' : IDL.Nat,
+  'question' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'answer' : IDL.Text,
+  'viewCount' : IDL.Nat,
+  'approved' : IDL.Bool,
+  'notHelpfulCount' : IDL.Nat,
+  'category' : IDL.Text,
+  'helpfulCount' : IDL.Nat,
+});
 export const Comic = IDL.Record({
   'id' : IDL.Nat,
   'title' : IDL.Text,
@@ -18,17 +29,56 @@ export const Comic = IDL.Record({
   'coverImage' : IDL.Text,
   'genre' : IDL.Text,
 });
+export const SubmittedQuestion = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : IDL.Text,
+  'question' : IDL.Text,
+  'name' : IDL.Opt(IDL.Text),
+  'submittedAt' : IDL.Int,
+  'answer' : IDL.Text,
+  'email' : IDL.Opt(IDL.Text),
+});
 
 export const idlService = IDL.Service({
+  'answerQuestion' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [IDL.Bool], []),
+  'approveQuestion' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [IDL.Bool], []),
+  'getAllApprovedFaqs' : IDL.Func([], [IDL.Vec(FaqItem)], ['query']),
   'getAllComics' : IDL.Func([], [IDL.Vec(Comic)], ['query']),
   'getAllGenres' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+  'getAllSubmittedQuestions' : IDL.Func(
+      [],
+      [IDL.Vec(SubmittedQuestion)],
+      ['query'],
+    ),
   'getComicById' : IDL.Func([IDL.Nat], [IDL.Opt(Comic)], ['query']),
   'getComicsByGenre' : IDL.Func([IDL.Text], [IDL.Vec(Comic)], ['query']),
+  'getFaqsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(FaqItem)], ['query']),
+  'getPopularFaqs' : IDL.Func([], [IDL.Vec(FaqItem)], ['query']),
+  'recordFaqView' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'rejectQuestion' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+  'submitQuestion' : IDL.Func(
+      [IDL.Opt(IDL.Text), IDL.Opt(IDL.Text), IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
+  'verifyAdminPassword' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+  'voteHelpful' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const FaqItem = IDL.Record({
+    'id' : IDL.Nat,
+    'question' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'answer' : IDL.Text,
+    'viewCount' : IDL.Nat,
+    'approved' : IDL.Bool,
+    'notHelpfulCount' : IDL.Nat,
+    'category' : IDL.Text,
+    'helpfulCount' : IDL.Nat,
+  });
   const Comic = IDL.Record({
     'id' : IDL.Nat,
     'title' : IDL.Text,
@@ -39,12 +89,40 @@ export const idlFactory = ({ IDL }) => {
     'coverImage' : IDL.Text,
     'genre' : IDL.Text,
   });
+  const SubmittedQuestion = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : IDL.Text,
+    'question' : IDL.Text,
+    'name' : IDL.Opt(IDL.Text),
+    'submittedAt' : IDL.Int,
+    'answer' : IDL.Text,
+    'email' : IDL.Opt(IDL.Text),
+  });
   
   return IDL.Service({
+    'answerQuestion' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [IDL.Bool], []),
+    'approveQuestion' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [IDL.Bool], []),
+    'getAllApprovedFaqs' : IDL.Func([], [IDL.Vec(FaqItem)], ['query']),
     'getAllComics' : IDL.Func([], [IDL.Vec(Comic)], ['query']),
     'getAllGenres' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+    'getAllSubmittedQuestions' : IDL.Func(
+        [],
+        [IDL.Vec(SubmittedQuestion)],
+        ['query'],
+      ),
     'getComicById' : IDL.Func([IDL.Nat], [IDL.Opt(Comic)], ['query']),
     'getComicsByGenre' : IDL.Func([IDL.Text], [IDL.Vec(Comic)], ['query']),
+    'getFaqsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(FaqItem)], ['query']),
+    'getPopularFaqs' : IDL.Func([], [IDL.Vec(FaqItem)], ['query']),
+    'recordFaqView' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'rejectQuestion' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+    'submitQuestion' : IDL.Func(
+        [IDL.Opt(IDL.Text), IDL.Opt(IDL.Text), IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
+    'verifyAdminPassword' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+    'voteHelpful' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Bool], []),
   });
 };
 

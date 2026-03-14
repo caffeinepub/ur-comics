@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { Novel } from "../types";
 
 interface NovelReaderProps {
@@ -6,6 +7,12 @@ interface NovelReaderProps {
   onBack: () => void;
   onPrev: () => void;
   onNext: () => void;
+  initialScrollPosition?: number;
+  onUpdateProgress?: (
+    chapterNumber: number,
+    scrollPosition: number,
+    progressPercentage: number,
+  ) => void;
 }
 
 export default function NovelReader({
@@ -14,7 +21,66 @@ export default function NovelReader({
   onBack,
   onPrev,
   onNext,
+  initialScrollPosition = 0,
+  onUpdateProgress,
 }: NovelReaderProps) {
+  const scrollRestoredRef = useRef(false);
+
+  // Auto-scroll to saved position on mount
+  useEffect(() => {
+    if (initialScrollPosition > 0 && !scrollRestoredRef.current) {
+      scrollRestoredRef.current = true;
+      const timer = setTimeout(() => {
+        window.scrollTo({ top: initialScrollPosition, behavior: "smooth" });
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [initialScrollPosition]);
+
+  // Scroll to top on chapter change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scrollRestoredRef is intentionally excluded
+  useEffect(() => {
+    scrollRestoredRef.current = true;
+    window.scrollTo({ top: 0 });
+  }, [chapterIndex]);
+
+  // Continuous scroll tracking
+  useEffect(() => {
+    if (!novel) return;
+    let throttleTimer: ReturnType<typeof setTimeout> | null = null;
+    const chapterIdx = novel.chapters.findIndex((c) => c.id === chapterIndex);
+    const chapterNum = chapterIdx >= 0 ? chapterIdx + 1 : 1;
+
+    const handleScroll = () => {
+      if (throttleTimer) return;
+      throttleTimer = setTimeout(() => {
+        throttleTimer = null;
+        const scrollTop = window.scrollY;
+        const docHeight =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const pct =
+          docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
+
+        const key = `reading_progress_novel_${novel.id}`;
+        const data = {
+          novelId: novel.id,
+          chapterNumber: chapterNum,
+          scrollPosition: scrollTop,
+          progressPercentage: pct,
+        };
+        localStorage.setItem(key, JSON.stringify(data));
+
+        onUpdateProgress?.(chapterNum, scrollTop, pct);
+      }, 250);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (throttleTimer) clearTimeout(throttleTimer);
+    };
+  }, [novel, chapterIndex, onUpdateProgress]);
+
   if (!novel) {
     return (
       <div

@@ -288,25 +288,34 @@ const PLACEHOLDER_HISTORY: ReadingHistoryItem[] = [
     id: 1,
     title: "Shadow Chronicles",
     chapter: "Ch. 3",
+    chapterNumber: 3,
+    scrollPosition: 0,
     progress: 60,
     gradient: "linear-gradient(135deg, #4A0080, #9F8BFF)",
     type: "comic",
+    isPlaceholder: true,
   },
   {
     id: 3,
     title: "Neon Nights",
     chapter: "Ch. 8",
+    chapterNumber: 8,
+    scrollPosition: 0,
     progress: 45,
     gradient: "linear-gradient(135deg, #003080, #8BB0FF)",
     type: "comic",
+    isPlaceholder: true,
   },
   {
     id: 104,
     title: "Paper Cranes",
     chapter: "Ch. 2",
+    chapterNumber: 2,
+    scrollPosition: 0,
     progress: 80,
     gradient: "linear-gradient(135deg, #600030, #FF6BAA)",
     type: "novel",
+    isPlaceholder: true,
   },
 ];
 
@@ -320,6 +329,7 @@ interface HomeProps {
   onToggleBookmark: (id: number) => void;
   readingHistory: ReadingHistoryItem[];
   allNovels: Novel[];
+  onContinueReading?: (item: ReadingHistoryItem) => void;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -588,6 +598,7 @@ export default function Home({
   onToggleBookmark,
   readingHistory,
   allNovels,
+  onContinueReading,
 }: HomeProps) {
   const [activeGenre, setActiveGenre] = useState("All");
   const [top10Tab, setTop10Tab] = useState<"comics" | "novels">("comics");
@@ -693,21 +704,19 @@ export default function Home({
                   flexShrink: 0,
                   padding: "7px 16px",
                   borderRadius: "999px",
-                  border: isActive
-                    ? style.activeBorder
-                    : "2px solid transparent",
-                  background: isActive
-                    ? style.background
-                    : "rgba(255,255,255,0.08)",
-                  color: "white",
+                  border: isActive ? style.activeBorder : "2px solid #D0D0DC",
+                  background: isActive ? style.background : "#E8E8EE",
+                  color: isActive ? "white" : "#3A3A4A",
                   fontSize: "13px",
                   fontWeight: 700,
                   cursor: "pointer",
                   fontFamily: "inherit",
-                  boxShadow: isActive ? style.boxShadow : "none",
+                  boxShadow: isActive
+                    ? style.boxShadow
+                    : "0 1px 4px rgba(0,0,0,0.08)",
                   transition: "all 0.2s",
                   whiteSpace: "nowrap",
-                  opacity: isActive ? 1 : 0.7,
+                  opacity: 1,
                 }}
               >
                 {genre}
@@ -770,115 +779,129 @@ export default function Home({
             scrollbarWidth: "none",
           }}
         >
-          {displayHistory.map((item, i) => (
-            <div
-              key={`${item.type}-${item.id}`}
-              data-ocid={`home.continue_reading.item.${i + 1}`}
-              style={{
-                flexShrink: 0,
-                width: "140px",
-                borderRadius: "12px",
-                overflow: "hidden",
-                background: "var(--color-surface)",
-                border: "1px solid var(--color-border)",
-                cursor: "pointer",
-              }}
-            >
-              {/* Cover */}
-              <div
+          {displayHistory.map((item, i) => {
+            const isPlaceholder = readingHistory.length === 0;
+            const Tag = isPlaceholder ? "div" : "button";
+            return (
+              <Tag
+                key={`${item.type}-${item.id}`}
+                data-ocid={`home.continue_reading.item.${i + 1}`}
+                {...(!isPlaceholder && {
+                  type: "button" as const,
+                  onClick: () => onContinueReading?.(item),
+                })}
                 style={{
-                  background: item.gradient,
-                  height: "100px",
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  flexShrink: 0,
+                  width: "140px",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  background: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                  cursor: isPlaceholder ? "default" : "pointer",
+                  textAlign: "left" as const,
+                  padding: 0,
+                  opacity: isPlaceholder ? 0.6 : 1,
+                  pointerEvents: isPlaceholder
+                    ? ("none" as const)
+                    : ("auto" as const),
                 }}
               >
-                <span
-                  style={{
-                    color: "rgba(255,255,255,0.25)",
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    textAlign: "center",
-                    padding: "0 8px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
-                    fontFamily: "'Sora', system-ui, sans-serif",
-                  }}
-                >
-                  {item.title}
-                </span>
-                {/* Type badge */}
-                <span
-                  style={{
-                    position: "absolute",
-                    top: "6px",
-                    left: "6px",
-                    background:
-                      item.type === "novel"
-                        ? "rgba(255, 200, 100, 0.8)"
-                        : "rgba(106, 90, 224, 0.8)",
-                    color: "white",
-                    fontSize: "9px",
-                    fontWeight: 700,
-                    padding: "2px 6px",
-                    borderRadius: "999px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                  }}
-                >
-                  {item.type === "novel" ? "Novel" : "Comic"}
-                </span>
-              </div>
-              {/* Info */}
-              <div style={{ padding: "8px 10px 10px" }}>
-                <p
-                  style={{
-                    color: "white",
-                    fontWeight: 700,
-                    fontSize: "12px",
-                    margin: 0,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {item.title}
-                </p>
-                {/* Progress bar */}
+                {/* Cover */}
                 <div
                   style={{
-                    marginTop: "6px",
-                    height: "3px",
-                    borderRadius: "999px",
-                    background: "rgba(255,255,255,0.1)",
-                    overflow: "hidden",
+                    background: item.gradient,
+                    height: "100px",
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
+                  <span
+                    style={{
+                      color: "rgba(255,255,255,0.25)",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      textAlign: "center",
+                      padding: "0 8px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                      fontFamily: "'Sora', system-ui, sans-serif",
+                    }}
+                  >
+                    {item.title}
+                  </span>
+                  {/* Type badge */}
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "6px",
+                      left: "6px",
+                      background:
+                        item.type === "novel"
+                          ? "rgba(255, 200, 100, 0.8)"
+                          : "rgba(106, 90, 224, 0.8)",
+                      color: "white",
+                      fontSize: "9px",
+                      fontWeight: 700,
+                      padding: "2px 6px",
+                      borderRadius: "999px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                    }}
+                  >
+                    {item.type === "novel" ? "Novel" : "Comic"}
+                  </span>
+                </div>
+                {/* Info */}
+                <div style={{ padding: "8px 10px 10px" }}>
+                  <p
+                    style={{
+                      color: "white",
+                      fontWeight: 700,
+                      fontSize: "12px",
+                      margin: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {item.title}
+                  </p>
+                  {/* Progress bar */}
                   <div
                     style={{
-                      height: "100%",
-                      width: `${item.progress}%`,
+                      marginTop: "6px",
+                      height: "3px",
                       borderRadius: "999px",
-                      background: "linear-gradient(90deg, #6A5AE0, #9F8BFF)",
-                      transition: "width 0.6s ease",
+                      background: "rgba(255,255,255,0.1)",
+                      overflow: "hidden",
                     }}
-                  />
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${item.progress}%`,
+                        borderRadius: "999px",
+                        background: "linear-gradient(90deg, #6A5AE0, #9F8BFF)",
+                        transition: "width 0.6s ease",
+                      }}
+                    />
+                  </div>
+                  <p
+                    style={{
+                      color: "var(--color-text-muted)",
+                      fontSize: "10px",
+                      margin: "5px 0 0",
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {item.chapter} • {item.progress}% completed
+                  </p>
                 </div>
-                <p
-                  style={{
-                    color: "var(--color-text-muted)",
-                    fontSize: "10px",
-                    margin: "5px 0 0",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {item.chapter} • {item.progress}% completed
-                </p>
-              </div>
-            </div>
-          ))}
+              </Tag>
+            );
+          })}
         </div>
       </section>
 

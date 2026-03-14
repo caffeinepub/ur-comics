@@ -38,6 +38,12 @@ const navItems = [
     icon: "🔖",
   },
   {
+    label: "Help & FAQs",
+    ocid: "sidebar.faq_link",
+    page: "faq" as Page,
+    icon: "❓",
+  },
+  {
     label: "Upload",
     ocid: "sidebar.upload_link",
     page: "upload" as Page,

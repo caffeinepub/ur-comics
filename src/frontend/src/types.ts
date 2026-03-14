@@ -31,9 +31,12 @@ export interface ReadingHistoryItem {
   id: number;
   title: string;
   chapter: string;
+  chapterNumber: number;
   progress: number;
+  scrollPosition: number;
   gradient: string;
   type: "comic" | "novel";
+  isPlaceholder?: boolean;
 }
 
 export type Page =
@@ -42,7 +45,9 @@ export type Page =
   | "upload"
   | "novel_detail"
   | "novel_reader"
-  | "bookmarks";
+  | "bookmarks"
+  | "faq"
+  | "admin";
 
 // Legacy exports for useQueries compatibility
 export const SAMPLE_COMICS: Comic[] = [

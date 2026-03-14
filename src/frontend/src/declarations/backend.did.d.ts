@@ -20,11 +20,45 @@ export interface Comic {
   'coverImage' : string,
   'genre' : string,
 }
+export interface FaqItem {
+  'id' : bigint,
+  'question' : string,
+  'createdAt' : bigint,
+  'answer' : string,
+  'viewCount' : bigint,
+  'approved' : boolean,
+  'notHelpfulCount' : bigint,
+  'category' : string,
+  'helpfulCount' : bigint,
+}
+export interface SubmittedQuestion {
+  'id' : bigint,
+  'status' : string,
+  'question' : string,
+  'name' : [] | [string],
+  'submittedAt' : bigint,
+  'answer' : string,
+  'email' : [] | [string],
+}
 export interface _SERVICE {
+  'answerQuestion' : ActorMethod<[string, bigint, string], boolean>,
+  'approveQuestion' : ActorMethod<[string, bigint, string], boolean>,
+  'getAllApprovedFaqs' : ActorMethod<[], Array<FaqItem>>,
   'getAllComics' : ActorMethod<[], Array<Comic>>,
   'getAllGenres' : ActorMethod<[], Array<string>>,
+  'getAllSubmittedQuestions' : ActorMethod<[], Array<SubmittedQuestion>>,
   'getComicById' : ActorMethod<[bigint], [] | [Comic]>,
   'getComicsByGenre' : ActorMethod<[string], Array<Comic>>,
+  'getFaqsByCategory' : ActorMethod<[string], Array<FaqItem>>,
+  'getPopularFaqs' : ActorMethod<[], Array<FaqItem>>,
+  'recordFaqView' : ActorMethod<[bigint], boolean>,
+  'rejectQuestion' : ActorMethod<[string, bigint], boolean>,
+  'submitQuestion' : ActorMethod<
+    [[] | [string], [] | [string], string],
+    bigint
+  >,
+  'verifyAdminPassword' : ActorMethod<[string], boolean>,
+  'voteHelpful' : ActorMethod<[bigint, boolean], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
